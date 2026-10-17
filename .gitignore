@@ -12,3 +12,5 @@ runtime/
 dist/
 
 .code-health-cache/
+
+PAPERCUTS.md
