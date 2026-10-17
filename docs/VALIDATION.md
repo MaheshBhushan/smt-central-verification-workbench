@@ -17,11 +17,15 @@ The host stores SQLite on a mounted workspace. Fsync, inference, concurrent loca
 
 ## Browser check
 
-Playwright opened the real localhost service, confirmed the connected classifier state, loaded both AOI crops, selected both decisions, submitted a named review with a reason, released the board, observed the retained review, and clicked quarantine replay. The [screenshot](workbench.png) records the running dashboard before that review. The replay recovery itself is verified by the HTTP report and unit suite.
+Playwright opened the real localhost service, confirmed the connected classifier state, loaded both AOI crops, selected both decisions, submitted a named review with a reason, released the board, observed the retained review, and clicked quarantine replay. The [desktop screenshot](workbench.png) records the running dashboard before that review. A [390-pixel mobile capture](workbench-mobile.png) shows the responsive layout with the simulation notice visible and no page-level horizontal overflow. The replay recovery itself is verified by the HTTP report and unit suite.
 
 ## Container check
 
-Container build and runtime verification are recorded below after the local build completes. The Docker CLI uses its legacy builder on this host. The default bridge could not resolve Python package download hosts; a host-network build was attempted. This environment behavior does not imply an application failure or Siemens platform compatibility.
+The final image built successfully as `smt-workbench:local`. Docker uses its legacy builder on this host. The default bridge could not resolve package download hosts; `docker build --network host -t smt-workbench:local .` completed. The dedicated `smtuser` account runs as UID/GID 10001.
+
+A fresh named volume was seeded by `docker run --rm --network none ... smt-workbench:local demo --boards 32`. Training and simulation completed without network access. The [container demo report](evidence/container-demo.json) records ten ready boards, one reviewed board, and one released board. A second container used the same volume and published port 18747 on localhost. Real HTTP checks returned health/model loaded, 12 boards, HTML 200, and PNG 200. The [container HTTP report](evidence/container-http.json) records the responses. `docker exec ... id` confirmed UID/GID 10001. The temporary container and volume were removed after verification.
+
+`docker compose config --quiet` also passed. The published source CI passed the test/lint/demo/load workflow. No Siemens device, Industrial Edge application manager, or real machine adapter was involved.
 
 ## Implementation choices against the planning specification
 

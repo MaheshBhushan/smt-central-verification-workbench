@@ -2,7 +2,7 @@
   "schema_version": 1,
   "mode": "DEEP",
   "summary": {
-    "files_analyzed": 27,
+    "files_analyzed": 33,
     "findings": 0,
     "errors": 0,
     "warnings": 0,
@@ -16,11 +16,17 @@
     ".scratch/smt-workbench/plan.md",
     "Dockerfile",
     "LICENSE",
-    "PAPERCUTS.md",
+    "README.md",
     "compose.yaml",
     "docs/IMPLEMENTATION_HANDOFF.md",
     "docs/OPERATIONS.md",
+    "docs/VALIDATION.md",
+    "docs/evidence/code-health-deep.json",
+    "docs/evidence/code-health-fast.json",
+    "docs/evidence/fault-demo.json",
     "docs/evidence/http-load.json",
+    "docs/evidence/model-evaluation.json",
+    "docs/evidence/service-load.json",
     "docs/workbench.png",
     "scripts/http_acceptance.py",
     "src/smt_workbench/adapters.py",
@@ -43,8 +49,8 @@
       "analyzer": "oxlint",
       "available": true,
       "version": "Version: 1.80.0",
-      "duration_ms": 70,
-      "cached": false,
+      "duration_ms": 0,
+      "cached": true,
       "error": null
     },
     {
@@ -56,7 +62,7 @@
       "error": null
     }
   ],
-  "cache_hits": 0,
-  "cache_misses": 2,
-  "duration_ms": 188
+  "cache_hits": 1,
+  "cache_misses": 1,
+  "duration_ms": 54
 }

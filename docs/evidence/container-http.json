@@ -1,0 +1,17 @@
+{
+  "synthetic_only": true,
+  "transport": "real Docker published localhost HTTP",
+  "health_status": 200,
+  "health": {
+    "status": "ok",
+    "model_loaded": true,
+    "synthetic_only": true
+  },
+  "state_status": 200,
+  "boards": 12,
+  "ui_status": 200,
+  "ui_contains_title": true,
+  "image_status": 200,
+  "image_png": true,
+  "passed": true
+}
