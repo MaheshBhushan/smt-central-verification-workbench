@@ -1,0 +1,30 @@
+{
+  "synthetic_only": true,
+  "transport": "real localhost HTTP",
+  "run_id": "http-acceptance",
+  "boards": 25,
+  "concurrency": 4,
+  "requests": 180,
+  "status_counts": {
+    "202": 1,
+    "200": 177,
+    "409": 1,
+    "422": 1
+  },
+  "elapsed_seconds": 22.290348594775423,
+  "requests_per_second": 8.07524383186137,
+  "latency_ms": {
+    "p50": 378.11402906663716,
+    "p95": 791.5447191335261,
+    "p99": 3362.2496479656547
+  },
+  "checks": {
+    "out_of_order_quarantined": true,
+    "replay_recovered": true,
+    "duplicate": true,
+    "all_released": true,
+    "reviews_retained": true
+  },
+  "passed": true,
+  "method": "Unique slots; phase barriers: arrival/evidence/review/release. Timed POSTs include expected fault requests. Generation and health check excluded."
+}

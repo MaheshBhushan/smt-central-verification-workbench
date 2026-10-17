@@ -1,0 +1,19 @@
+{
+  "run_id": "demo",
+  "boards": 12,
+  "seed": 73,
+  "faults": true,
+  "auto_review": false,
+  "expected_state": "READY_FOR_REVIEW",
+  "matching_boards": 12,
+  "counts": {
+    "applied": 60,
+    "quarantined": 4,
+    "duplicate": 12,
+    "conflict": 1
+  },
+  "elapsed_seconds": 10.320067164953798,
+  "events_per_second": 5.813915650060463,
+  "passed": true,
+  "synthetic_only": true
+}

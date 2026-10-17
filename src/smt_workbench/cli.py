@@ -2,10 +2,14 @@
 
 import argparse
 import json
+from collections import Counter
+from datetime import UTC, datetime
 from pathlib import Path
+from uuid import NAMESPACE_URL, uuid5
 
 from .db import Database
 from .ml import load_predictor, train
+from .schemas import Event, Review
 from .service import Workbench
 from .simulator import simulate
 from .synthetic import generate
@@ -48,11 +52,50 @@ def main():
         if args.command != "generate":
             result = train(artifacts, manifest, model_path)
         if args.command == "demo":
+            service = Workbench(db, artifacts, load_predictor(model_path))
             result = simulate(
-                Workbench(db, artifacts, load_predictor(model_path)),
+                service,
                 run_id=args.run_id,
                 boards=12,
                 seed=args.seed,
+            )
+            boards = service.snapshot(args.run_id)["boards"]
+            for i, board in enumerate(boards[:2]):
+                if board["state"] == "READY_FOR_REVIEW":
+                    service.review(
+                        args.run_id,
+                        board["board_id"],
+                        Review(
+                            request_id=uuid5(NAMESPACE_URL, board["board_id"] + "-fixture"),
+                            reviewer="Synthetic demo fixture",
+                            reason="Seeded demonstration record; no human review claimed",
+                            decisions=[
+                                {"site_id": site["site_id"], "decision": site["prediction"]["label"]}
+                                for site in board["sites"]
+                            ],
+                        ),
+                    )
+                    if i == 1:
+                        service.ingest(
+                            Event(
+                                **{
+                                    k: board[k]
+                                    for k in (
+                                        "run_id",
+                                        "board_id",
+                                        "line_id",
+                                        "buffer_id",
+                                        "slot_id",
+                                        "occupancy_id",
+                                    )
+                                },
+                                occurred_at=datetime(2026, 1, 1, tzinfo=UTC),
+                                event_id=f"{args.run_id}-fixture-release",
+                                event_type="release",
+                            )
+                        )
+            result["demo_state_counts"] = dict(
+                Counter(b["state"] for b in service.snapshot(args.run_id)["boards"])
             )
     else:
         if not model_path.exists():

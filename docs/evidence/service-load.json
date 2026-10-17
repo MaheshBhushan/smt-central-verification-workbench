@@ -1,0 +1,19 @@
+{
+  "run_id": "acceptance-load",
+  "boards": 100,
+  "seed": 73,
+  "faults": true,
+  "auto_review": true,
+  "expected_state": "RELEASED",
+  "matching_boards": 100,
+  "counts": {
+    "applied": 600,
+    "quarantined": 34,
+    "duplicate": 100,
+    "conflict": 1
+  },
+  "elapsed_seconds": 27.45935014099814,
+  "events_per_second": 18.208733907852967,
+  "passed": true,
+  "synthetic_only": true
+}

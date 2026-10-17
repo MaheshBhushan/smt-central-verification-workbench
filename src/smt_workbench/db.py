@@ -5,6 +5,10 @@ from contextlib import contextmanager
 from pathlib import Path
 
 SCHEMA = """
+CREATE TABLE IF NOT EXISTS audit_log (
+ id INTEGER PRIMARY KEY,run_id TEXT,board_id TEXT,action TEXT NOT NULL,
+ reference_id TEXT NOT NULL,detail TEXT NOT NULL,
+ created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')));
 CREATE TABLE IF NOT EXISTS events (
  event_id TEXT PRIMARY KEY, digest TEXT NOT NULL, body TEXT NOT NULL,
  status TEXT NOT NULL, reason TEXT, attempts INTEGER NOT NULL DEFAULT 1,

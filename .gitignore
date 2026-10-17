@@ -10,3 +10,5 @@ runtime/
 *.joblib
 *.egg-info/
 dist/
+
+.code-health-cache/

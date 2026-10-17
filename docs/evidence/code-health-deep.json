@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "mode": "DEEP",
+  "summary": {
+    "files_analyzed": 27,
+    "findings": 0,
+    "errors": 0,
+    "warnings": 0,
+    "suggestions": 0
+  },
+  "findings": [],
+  "analyzed_files": [
+    ".dockerignore",
+    ".github/workflows/check.yml",
+    ".gitignore",
+    ".scratch/smt-workbench/plan.md",
+    "Dockerfile",
+    "LICENSE",
+    "PAPERCUTS.md",
+    "compose.yaml",
+    "docs/IMPLEMENTATION_HANDOFF.md",
+    "docs/OPERATIONS.md",
+    "docs/evidence/http-load.json",
+    "docs/workbench.png",
+    "scripts/http_acceptance.py",
+    "src/smt_workbench/adapters.py",
+    "src/smt_workbench/app.py",
+    "src/smt_workbench/cli.py",
+    "src/smt_workbench/db.py",
+    "src/smt_workbench/ml.py",
+    "src/smt_workbench/schemas.py",
+    "src/smt_workbench/service.py",
+    "src/smt_workbench/simulator.py",
+    "src/smt_workbench/static/app.js",
+    "src/smt_workbench/static/index.html",
+    "src/smt_workbench/static/styles.css",
+    "src/smt_workbench/synthetic.py",
+    "tests/test_workbench.py",
+    "uv.lock"
+  ],
+  "analyzers": [
+    {
+      "analyzer": "oxlint",
+      "available": true,
+      "version": "Version: 1.80.0",
+      "duration_ms": 70,
+      "cached": false,
+      "error": null
+    },
+    {
+      "analyzer": "ruff",
+      "available": true,
+      "version": "ruff 0.16.5",
+      "duration_ms": 10,
+      "cached": false,
+      "error": null
+    }
+  ],
+  "cache_hits": 0,
+  "cache_misses": 2,
+  "duration_ms": 188
+}

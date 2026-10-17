@@ -26,6 +26,12 @@ def create_app(runtime=None):
     app = FastAPI(title="SMT Central Verification Workbench", version="0.1.0")
     app.state.service = service
 
+    @app.middleware("http")
+    async def bounded_json(request, call_next):
+        if request.method == "POST" and len(await request.body()) > 65536:
+            return JSONResponse(status_code=413, content={"detail": "JSON body exceeds 64 KiB"})
+        return await call_next(request)
+
     @app.exception_handler(Conflict)
     async def conflict_handler(request, exc):
         return JSONResponse(status_code=409, content={"detail": str(exc)})

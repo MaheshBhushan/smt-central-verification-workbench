@@ -52,11 +52,16 @@ class Workbench:
                 raise ValueError("image_path is required")
             resolved = (self.artifact_root / relative).resolve()
             if (
-                not resolved.is_relative_to(self.artifact_root)
+                Path(relative).is_absolute()
+                or not resolved.is_relative_to(self.artifact_root)
                 or not resolved.is_file()
                 or resolved.suffix.lower() != ".png"
             ):
                 raise ValueError("image must be a PNG inside the artifact directory")
+            import cv2
+
+            if cv2.imread(str(resolved)) is None:
+                raise ValueError("image cannot be decoded")
             with resolved.open("rb") as image_file:
                 if image_file.read(8) != b"\x89PNG\r\n\x1a\n":
                     raise ValueError("image is not a PNG")
@@ -96,6 +101,9 @@ class Workbench:
                 )
             if replay:
                 self.validate(event)
+            before = c.execute(
+                "SELECT state FROM boards WHERE run_id=? AND board_id=?", (event.run_id, event.board_id)
+            ).fetchone()
             # Savepoint preserves the journal while rolling back every failed projection.
             c.execute("SAVEPOINT projection")
             try:
@@ -106,9 +114,35 @@ class Workbench:
                     "UPDATE events SET status='quarantined',reason=? WHERE event_id=?",
                     (str(exc), event.event_id),
                 )
+                self._audit(
+                    c,
+                    event.run_id,
+                    event.board_id,
+                    "replay_quarantined" if replay else "quarantined",
+                    event.event_id,
+                    str(exc),
+                )
                 return {"status": "quarantined", "reason": str(exc), "event_id": event.event_id}
             c.execute("UPDATE events SET status='applied',reason=NULL WHERE event_id=?", (event.event_id,))
+            after = c.execute(
+                "SELECT state FROM boards WHERE run_id=? AND board_id=?", (event.run_id, event.board_id)
+            ).fetchone()
+            self._audit(
+                c,
+                event.run_id,
+                event.board_id,
+                "replay_applied" if replay else event.event_type,
+                event.event_id,
+                f"{before['state'] if before else 'NEW'} -> {after['state']}",
+            )
         return {"status": "applied", "event_id": event.event_id}
+
+    @staticmethod
+    def _audit(c, run_id, board_id, action, reference_id, detail):
+        c.execute(
+            "INSERT INTO audit_log(run_id,board_id,action,reference_id,detail) VALUES(?,?,?,?,?)",
+            (run_id, board_id, action, reference_id, detail),
+        )
 
     def _apply(self, c, e):
         key = (e.run_id, e.board_id)
@@ -146,6 +180,8 @@ class Workbench:
             c.execute("DELETE FROM slots WHERE run_id=? AND occupancy_id=?", (e.run_id, e.occupancy_id))
             c.execute("UPDATE boards SET state='RELEASED' WHERE run_id=? AND board_id=?", key)
             return
+        if b["state"] == "RELEASED":
+            raise Dependency("stale evidence belongs to a released occupancy")
         if b["state"] != "COLLECTING":
             raise Conflict("inspection is immutable after collection")
         site_key = (*key, e.payload["site_id"])
@@ -168,10 +204,18 @@ class Workbench:
         ).fetchone()
         if updated["image_path"] and updated["measurement"]:
             if self.predictor is None:
-                raise Dependency("trained classifier is unavailable")
-            prediction = self.predictor(
-                self.artifact_root / updated["image_path"], json.loads(updated["measurement"])
-            )
+                prediction = {"label": "unavailable", "status": "unavailable", "reason": "No model loaded"}
+            else:
+                try:
+                    prediction = self.predictor(
+                        self.artifact_root / updated["image_path"], json.loads(updated["measurement"])
+                    )
+                except (ValueError, OSError):
+                    prediction = {
+                        "label": "unavailable",
+                        "status": "error",
+                        "reason": "Local inference failed",
+                    }
             c.execute(
                 "UPDATE sites SET prediction=? WHERE run_id=? AND board_id=? AND site_id=?",
                 (canonical(prediction), *site_key),
@@ -211,6 +255,7 @@ class Workbench:
                 ),
             )
             c.execute("UPDATE boards SET state='REVIEWED' WHERE run_id=? AND board_id=?", key)
+            self._audit(c, run_id, board_id, "review", str(review.request_id), review.reviewer)
         return {"state": "REVIEWED"}
 
     def replay(self):
@@ -256,4 +301,5 @@ class Workbench:
                     "SELECT event_id,status,reason,attempts,received_at FROM events ORDER BY received_at DESC LIMIT 200"
                 )
             ]
-        return {"boards": boards, "events": events}
+            audit = [dict(r) for r in c.execute("SELECT * FROM audit_log ORDER BY id DESC LIMIT 200")]
+        return {"boards": boards, "events": events, "audit": audit}

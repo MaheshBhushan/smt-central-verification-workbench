@@ -200,3 +200,35 @@ def test_real_training_split_and_load(tmp_path):
     with service.db.connect() as c:
         assert c.execute("SELECT count(*) FROM slots").fetchone()[0] == 0
     (tmp_path / "evidence.json").write_text(json.dumps(simulation))
+
+
+def test_missing_model_preserves_evidence_and_allows_review(service):
+    service.predictor = None
+    complete(service)
+    board = service.snapshot()["boards"][0]
+    assert board["state"] == "READY_FOR_REVIEW"
+    assert all(s["measurement"] and s["image_path"] for s in board["sites"])
+    assert all(s["prediction"]["status"] == "unavailable" for s in board["sites"])
+    assert all("confidence" not in s["prediction"] for s in board["sites"])
+    service.review("r1", "B1", review())
+
+
+def test_duplicate_does_not_repeat_audit_and_deleted_image_is_still_duplicate(service):
+    arrival = event()
+    service.ingest(arrival)
+    e = event("aoi", site_id="U1", image_path="fixture/00000-U1.png")
+    service.ingest(e)
+    before = len(service.snapshot()["audit"])
+    (service.artifact_root / e.payload["image_path"]).unlink()
+    assert service.ingest(e)["status"] == "duplicate"
+    service.ingest(arrival)
+    assert len(service.snapshot()["audit"]) == before
+
+
+def test_naive_time_and_whitespace_review_rejected():
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError):
+        Event.model_validate(event().model_dump() | {"occurred_at": "2026-01-01T00:00:00"})
+    with pytest.raises(ValidationError):
+        review(reason="   ")
