@@ -1,7 +1,9 @@
 """Seeded fictional AOI crops and independent synthetic 3D measurements."""
+
 import hashlib
 import json
 from pathlib import Path
+
 import cv2
 import numpy as np
 
@@ -35,9 +37,17 @@ def generate(root: Path, *, boards=120, seed=17, prefix="training"):
             name = f"{prefix}/{board:05d}-U{site + 1}.png"
             if not cv2.imwrite(str(root / name), image):
                 raise OSError("failed to write synthetic image")
-            records.append({"board_id": f"{prefix}-{board:05d}", "site_id": f"U{site + 1}",
-                            "image_path": name, "sha256": hashlib.sha256((root / name).read_bytes()).hexdigest(),
-                            "height_mm": max(0.01, height), "volume_mm3": max(0.01, volume), "label": label})
+            records.append(
+                {
+                    "board_id": f"{prefix}-{board:05d}",
+                    "site_id": f"U{site + 1}",
+                    "image_path": name,
+                    "sha256": hashlib.sha256((root / name).read_bytes()).hexdigest(),
+                    "height_mm": max(0.01, height),
+                    "volume_mm3": max(0.01, volume),
+                    "label": label,
+                }
+            )
     manifest = {"seed": seed, "synthetic": True, "boards": boards, "records": records}
     (folder / "manifest.json").write_text(json.dumps(manifest, indent=2))
     return manifest

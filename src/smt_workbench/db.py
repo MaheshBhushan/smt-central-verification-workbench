@@ -1,4 +1,5 @@
 """SQLite persistence with one atomic transaction per command."""
+
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path

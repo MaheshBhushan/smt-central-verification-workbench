@@ -1,0 +1,17 @@
+name: checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.24"
+      - run: uv sync --locked --python 3.12 --extra dev
+      - run: uv run ruff check src tests
+      - run: uv run pytest -q
+      - run: uv run smt-workbench demo --boards 32
+      - run: uv run smt-workbench load-test --boards 25 --run-id ci-load

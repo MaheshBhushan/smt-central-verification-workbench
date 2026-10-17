@@ -1,12 +1,14 @@
 """Reproducible commands with generated data confined to an ignored runtime."""
+
 import argparse
 import json
 from pathlib import Path
+
 from .db import Database
 from .ml import load_predictor, train
 from .service import Workbench
-from .synthetic import generate
 from .simulator import simulate
+from .synthetic import generate
 
 
 def main():
@@ -27,7 +29,9 @@ def main():
     root.mkdir(parents=True, exist_ok=True)
     if args.command == "serve":
         import uvicorn
+
         from .app import create_app
+
         uvicorn.run(create_app(root), host=args.host, port=args.port)
         return
     db = Database(root / "workbench.db")
@@ -44,13 +48,22 @@ def main():
         if args.command != "generate":
             result = train(artifacts, manifest, model_path)
         if args.command == "demo":
-            result = simulate(Workbench(db, artifacts, load_predictor(model_path)), run_id=args.run_id,
-                              boards=12, seed=args.seed)
+            result = simulate(
+                Workbench(db, artifacts, load_predictor(model_path)),
+                run_id=args.run_id,
+                boards=12,
+                seed=args.seed,
+            )
     else:
         if not model_path.exists():
             parser.error("run train or demo first")
-        result = simulate(Workbench(db, artifacts, load_predictor(model_path)), run_id=args.run_id,
-                          boards=args.boards, seed=args.seed, auto_review=args.command == "load-test")
+        result = simulate(
+            Workbench(db, artifacts, load_predictor(model_path)),
+            run_id=args.run_id,
+            boards=args.boards,
+            seed=args.seed,
+            auto_review=args.command == "load-test",
+        )
     (root / f"{args.command}-report.json").write_text(json.dumps(result, indent=2))
     print(json.dumps(result, indent=2), flush=True)
     if result.get("passed") is False:

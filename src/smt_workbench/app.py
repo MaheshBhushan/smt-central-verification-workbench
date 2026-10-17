@@ -1,16 +1,19 @@
 """Local operator workbench API and static application."""
+
 import json
 import os
 from pathlib import Path
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
+
 from .adapters import normalize
 from .db import Database
 from .ml import load_predictor
 from .schemas import Review
-from .service import Workbench, Conflict
+from .service import Conflict, Workbench
 
 
 def create_app(runtime=None):
@@ -45,9 +48,9 @@ def create_app(runtime=None):
         try:
             message = await request.json()
             if not isinstance(message, dict):
-                raise ValueError("event must be an object")
+                raise TypeError("event must be an object")
             result = service.ingest(normalize(message))
-        except (ValidationError, ValueError, KeyError) as exc:
+        except (ValidationError, ValueError, TypeError, KeyError) as exc:
             if isinstance(exc, Conflict):
                 raise
             raise HTTPException(422, detail=str(exc)) from exc
