@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "smt-central-verification-workbench"
+version = "0.1.0"
+description = "Synthetic SMT inspection correlation and operator verification workbench"
+requires-python = ">=3.12"
+dependencies = ["fastapi>=0.115,<1", "uvicorn>=0.34,<1", "numpy>=2,<3", "opencv-python-headless>=4.11,<5", "scikit-learn>=1.6,<2", "joblib>=1.4,<2"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10", "httpx>=0.28,<1", "ruff>=0.11,<1"]
+
+[project.scripts]
+smt-workbench = "smt_workbench.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/smt_workbench"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
