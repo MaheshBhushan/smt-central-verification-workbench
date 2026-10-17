@@ -70,13 +70,13 @@ class Workbench:
         if event.event_type == "measurement":
             import math
 
-            for key in ("height_mm", "volume_mm3"):
+            for key in ("height_mm", "volume_mm3", *(["coplanarity_mm"] if "coplanarity_mm" in p else [])):
                 value = p.get(key)
                 if (
                     isinstance(value, bool)
                     or not isinstance(value, (float, int))
                     or not math.isfinite(value)
-                    or value <= 0
+                    or (value < 0 if key == "coplanarity_mm" else value <= 0)
                 ):
                     raise ValueError(f"{key} must be a finite positive number")
 
@@ -194,7 +194,9 @@ class Workbench:
         value = (
             e.payload["image_path"]
             if field == "image_path"
-            else canonical({k: e.payload[k] for k in ("height_mm", "volume_mm3")})
+            else canonical(
+                {k: e.payload[k] for k in ("height_mm", "volume_mm3", "coplanarity_mm") if k in e.payload}
+            )
         )
         c.execute(
             f"UPDATE sites SET {field}=? WHERE run_id=? AND board_id=? AND site_id=?", (value, *site_key)

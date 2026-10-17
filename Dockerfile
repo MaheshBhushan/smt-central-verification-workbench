@@ -5,8 +5,8 @@ WORKDIR /app
 ENV UV_LINK_MODE=copy PYTHONUNBUFFERED=1 SMT_RUNTIME=/data
 COPY pyproject.toml uv.lock ./
 COPY src ./src
-RUN uv sync --locked --no-dev && useradd --uid 10001 --create-home operator && mkdir /data && chown operator /data
-USER operator
+RUN uv sync --locked --no-dev && groupadd --gid 10001 smtuser && useradd --uid 10001 --gid 10001 --create-home smtuser && mkdir /data && chown smtuser:smtuser /data
+USER smtuser
 VOLUME ["/data"]
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s CMD ["/app/.venv/bin/python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/api/health')"]
