@@ -176,6 +176,7 @@ def test_api_semantics_and_static_ui(tmp_path):
     assert client.post("/api/events", json={"event_type": "bad"}).status_code == 422
     early = event("release")
     assert client.post("/api/events", json=early.model_dump(mode="json")).status_code == 202
+    assert client.post("/api/replay", content="{}", headers={"Content-Type": "text/plain"}).status_code == 415
     assert client.get("/api/health").json()["synthetic_only"]
     assert "One view. Every board." in client.get("/").text
 
