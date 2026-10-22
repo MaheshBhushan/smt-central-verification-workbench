@@ -28,6 +28,11 @@ def create_app(runtime=None):
 
     @app.middleware("http")
     async def bounded_json(request, call_next):
+        # Requiring a JSON content type forces a CORS preflight, so another
+        # origin cannot post events or trigger replay through a simple request.
+        content_type = request.headers.get("content-type", "").split(";")[0].strip().lower()
+        if request.method == "POST" and content_type != "application/json":
+            return JSONResponse(status_code=415, content={"detail": "POST requires application/json"})
         if request.method == "POST" and len(await request.body()) > 65536:
             return JSONResponse(status_code=413, content={"detail": "JSON body exceeds 64 KiB"})
         return await call_next(request)
